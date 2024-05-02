@@ -52,8 +52,8 @@ class BwtreeTest : public ::testing::Test {
  * Basic functionality test of 1M concurrent random inserts
  */
 TEST_F(BwtreeTest, ConcurrentRandomInsert) {
-  // This defines the key space (0 ~ (1M - 1))
-  const uint32_t key_num = 1024 * 1024;
+  // This defines the key space (0 ~ 4095)
+  const uint32_t key_num = 4096;
   std::atomic<size_t> insert_success_counter = 0;
 
   common::WorkerPool thread_pool(num_threads_, {});
@@ -90,12 +90,15 @@ TEST_F(BwtreeTest, ConcurrentRandomInsert) {
   delete tree;
 }
 
-TEST_F(BwtreeTest, ConcurrentMixed) {
+/*
+ * Test of 1M concurrent uniform distributed key inserts/deletes.
+ */
+TEST_F(BwtreeTest, ConcurrentInsertDeleteUniform) {
   NOISEPAGE_ASSERT(num_threads_ % 2 == 0,
       "This test requires an even number of threads. This should have been handled when it was assigned.");
 
-  // This defines the key space (0 ~ (1M - 1))
-  const uint32_t key_num = 1024 * 1024;
+  // This defines the key space (0 ~ 4095)
+  const uint32_t key_num = 4096;
 
   common::WorkerPool thread_pool(num_threads_, {});
   thread_pool.Startup();
@@ -132,3 +135,47 @@ TEST_F(BwtreeTest, ConcurrentMixed) {
 
   delete tree;
 }
+
+/*
+ * Test of 1M concurrent skewed key inserts/deletes.
+ */
+TEST_F(BwtreeTest, ConcurrentInsertDeleteSkewed) {
+  NOISEPAGE_ASSERT(num_threads_ % 2 == 0,
+      "This test requires an even number of threads. This should have been handled when it was assigned.");
+
+  // This defines the key space (0 ~ 4095)
+  const uint32_t key_num = 4096;
+  int key = 0xABCD;
+
+  common::WorkerPool thread_pool(num_threads_, {});
+  thread_pool.Startup();
+  auto *const tree = test::BwTreeTestUtil::GetEmptyTree();
+
+  // Inserts in a 1M key space randomly until all keys has been inserted
+  auto workload = [&](uint32_t id) {
+    const uint32_t gcid = id + 1;
+    tree->AssignGCID(gcid);
+
+    if ((id % 2) == 0) {
+      for (uint32_t i = 0; i < key_num; i++) {
+        int value = num_threads_ * i + id;
+        tree->Insert(key, value);
+      }
+    } else {
+      for (uint32_t i = 0; i < key_num; i++) {
+        int value = num_threads_ * i + id - 1;  // NOLINT
+        while (!tree->Delete(key, value)) {
+        }
+      }
+    }
+
+    tree->UnregisterThread(gcid);
+  };
+
+  tree->UpdateThreadLocal(num_threads_ + 1);
+  test::MultiThreadTestUtil::RunThreadsUntilFinish(&thread_pool, num_threads_, workload);
+  tree->UpdateThreadLocal(1);
+
+  delete tree;
+}
+

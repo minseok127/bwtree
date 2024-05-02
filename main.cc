@@ -11,28 +11,16 @@
 #include "worker_pool.h"
 #include "zipf.h"
 
-int main(int argc, char *argv[]) {
-#if 0
-  double alpha = 3.0;
-  std::vector<int> count(11, 0);
-
-  rand_val(alpha);
-  for (int i = 0; i < 10000; i++) {
-    count[zipf(alpha, 10)]++;
-  }
-
-  std::sort(count.begin(), count.end());
-
-  std::cout << "Ratio for alpha: " << alpha << std::endl;
-  for (int i = 1; i < 11; i++) {
-    std::cout << count[i] << std::endl;
-  }
-#endif
+/*
+ * Example code. See test/bwtree_test.cc
+ */
+static void TestAndAnalyzeSimpleSituation()
+{
   const uint32_t num_threads_ =
     test::MultiThreadTestUtil::HardwareConcurrency() + (test::MultiThreadTestUtil::HardwareConcurrency() % 2);
 
-  // This defines the key space (0 ~ (1M - 1))
-  const uint32_t key_num = 1024 * 1024;
+  // This defines the key space (0 ~ 4095)
+  const uint32_t key_num = 4096;
   std::atomic<size_t> insert_success_counter = 0;
   std::atomic<size_t> total_op_counter = 0;
 
@@ -40,7 +28,7 @@ int main(int argc, char *argv[]) {
   thread_pool.Startup();
   auto *const tree = test::BwTreeTestUtil::GetEmptyTree();
 
-  // Inserts in a 1M key space randomly until all keys has been inserted
+  // Inserts in a 4096 key space randomly until all keys has been inserted
   auto workload = [&](uint32_t id) {
     const uint32_t gcid = id + 1;
     tree->AssignGCID(gcid);
@@ -58,6 +46,7 @@ int main(int argc, char *argv[]) {
     total_op_counter.fetch_add(op_cnt);
   };
 
+  // Calculate total elapsed time for inserting 4096 records.
   util::Timer<std::milli> timer;
   timer.Start();
 
@@ -67,14 +56,15 @@ int main(int argc, char *argv[]) {
 
   timer.Stop();
 
+  // Print insert throughput
   double ops = total_op_counter.load() / (timer.GetElapsed() / 1000.0);
   double success_ops = insert_success_counter.load() / (timer.GetElapsed() / 1000.0);
-  std::cout << std::fixed << "1M Insert(): " << timer.GetElapsed() << " (ms), "
+  std::cout << std::fixed << "4K Insert(): " << timer.GetElapsed() << " (ms), "
     << "write throughput: " << ops << " (op/s), "
     << "successive write throughput: " << success_ops << " (op/s)" << std::endl;
 
+  // Calculate total elapsed time for reading 4096 records.
   timer.Start();
-  // Verifies whether random insert is correct
   for (uint32_t i = 0; i < key_num; i++) {
     auto s = tree->GetValue(i);
 
@@ -83,11 +73,21 @@ int main(int argc, char *argv[]) {
   }
   timer.Stop();
 
+  // Print average read latency
   double latency =  (timer.GetElapsed() / key_num);
-  std::cout << std::fixed << "1M Get(): " << timer.GetElapsed() << " (ms), "
+  std::cout << std::fixed << "4K Get(): " << timer.GetElapsed() << " (ms), "
     << "avg read latency: " << latency << " (ms) " << std::endl;
 
   delete tree;
+}
 
-  return 0;
+int main(int argc, char *argv[]) {
+  /*
+   * Define your own situation and analyze it.
+   * You can refer to the test codes in test/bwtree_test.cc
+   *
+   * For example, the code below simply analyzes the ConcurrentRandomInsert test
+   * in test/bwtree_test.cc
+   */
+  TestAndAnalyzeSimpleSituation();
 }
