@@ -11,6 +11,19 @@
 #include "worker_pool.h"
 #include "zipf.h"
 
+static void TestAndAnalyzeSimpleSituation();
+
+int main(int argc, char *argv[]) {
+  /*
+   * Define your own situation and analyze it.
+   * You can refer to the test codes in test/bwtree_test.cc
+   *
+   * For example, the code below simply analyzes the ConcurrentRandomInsert test
+   * in test/bwtree_test.cc
+   */
+  TestAndAnalyzeSimpleSituation();
+}
+
 /*
  * Example code. See test/bwtree_test.cc
  */
@@ -79,15 +92,4 @@ static void TestAndAnalyzeSimpleSituation()
     << "avg read latency: " << latency << " (ms) " << std::endl;
 
   delete tree;
-}
-
-int main(int argc, char *argv[]) {
-  /*
-   * Define your own situation and analyze it.
-   * You can refer to the test codes in test/bwtree_test.cc
-   *
-   * For example, the code below simply analyzes the ConcurrentRandomInsert test
-   * in test/bwtree_test.cc
-   */
-  TestAndAnalyzeSimpleSituation();
 }
