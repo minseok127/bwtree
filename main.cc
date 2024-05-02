@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
  */
 static void TestAndAnalyzeSimpleSituation()
 {
-  const uint32_t num_threads_ =
+  uint32_t num_threads_ =
     test::MultiThreadTestUtil::HardwareConcurrency() + (test::MultiThreadTestUtil::HardwareConcurrency() % 2);
 
   // This defines the key space (0 ~ 4095)
