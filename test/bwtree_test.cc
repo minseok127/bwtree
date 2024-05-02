@@ -44,8 +44,8 @@ class BwtreeTest : public ::testing::Test {
           (test::MultiThreadTestUtil::HardwareConcurrency() % 2);
 
       /* 
-       * The fewer cores, the fewer threads. Set the number of threads large to
-       * see the problem.
+       * If the number of cores is too small,
+       * set the number of threads large to see the problem.
        */
       if (num_threads_ < 32) {
         num_threads_ = 32;
