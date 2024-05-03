@@ -14,17 +14,5 @@ set -x
 
 # prepare cmake install
 apt-get update
-apt-get install wget
 apt-get install libssl-dev
-
-# make build directory
-mkdir -p build
-cd build
-
-# download latest cmake version
-wget https://github.com/Kitware/CMake/releases/download/v3.16.0/cmake-3.16.0.tar.gz
-tar xvf cmake-3.16.0.tar.gz
-
-# build and install cmake
-cd cmake-3.16.0
-./bootstrap && make && make install
+apt-get install cmake
