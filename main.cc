@@ -19,10 +19,12 @@
  * to run threads on the user's computer. Since the workload requires pairs of
  * workers, set the number to be even.
  *
- * The workload operates as a pair of two worker threads. One worker inserts
- * records and periodically scans for the keys it inserted. Another worker
- * deletes the keys inserted by that worker. In other words, two workers sharing
- * a queue, one worker filling the queue, and the other clearing the queue.
+ * Two worker threads form a pair. There will probably be multiple such pairs.
+ * One worker inserts records and periodically scans for the keys it inserted.
+ * Another worker deletes the keys inserted by that worker.
+ * 
+ * In other words, two workers sharing a queue, one worker filling the queue,
+ * and the other clearing the queue.
  *
  * Unlike the ConcurrentRandomInsertDeleteRead test in bwtree_test.cc,
  * all records have the same key, making skewed situation.
