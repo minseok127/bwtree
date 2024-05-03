@@ -28,7 +28,7 @@ endif()
 
 # GoogleTest
 if(USE_GOOGLE_TEST)
-  add_subdirectory(test)
+  add_subdirectory(googletest)
 endif()
 
 add_executable(${CMAKE_PROJECT_NAME} main.cc)
