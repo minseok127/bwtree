@@ -16,10 +16,10 @@ static void TestAndAnalyzeSimpleSituation();
 int main(int argc, char *argv[]) {
   /*
    * Define your own situation and analyze it.
-   * You can refer to the test codes in test/bwtree_test.cc
+   * You can refer to the test codes in googletest/bwtree_test.cc
    *
    * For example, the code below simply analyzes the ConcurrentRandomInsert test
-   * in test/bwtree_test.cc
+   * in googletest/bwtree_test.cc
    */
   TestAndAnalyzeSimpleSituation();
 }
