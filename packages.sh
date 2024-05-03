@@ -22,9 +22,9 @@ mkdir -p build
 cd build
 
 # download latest cmake version
-wget https://github.com/Kitware/CMake/releases/download/v3.29.2/cmake-3.29.2.tar.gz
-tar xvf cmake-3.29.2.tar.gz
+wget https://github.com/Kitware/CMake/releases/download/v3.16.0/cmake-3.16.0.tar.gz
+tar xvf cmake-3.16.0.tar.gz
 
 # build and install cmake
-cd cmake-3.29.2
+cd cmake-3.16.0
 ./bootstrap && make && make install
