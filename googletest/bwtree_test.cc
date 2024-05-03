@@ -61,10 +61,10 @@ class BwtreeTest : public ::testing::Test {
 };
 
 /*
- * Basic functionality test of 4096 concurrent random inserts
+ * Basic functionality test of 4K concurrent random inserts
  */
 TEST_F(BwtreeTest, ConcurrentRandomInsert) {
-  // This defines the key space (0 ~ 4095)
+  // This defines the key space (0 ~ 4K - 1)
   const uint32_t key_num = 4096;
   std::atomic<size_t> insert_success_counter = 0;
 
@@ -103,10 +103,10 @@ TEST_F(BwtreeTest, ConcurrentRandomInsert) {
 }
 
 /*
- * Basic functionality test of 4096 concurrent random inserts and reads.
+ * Basic functionality test of 4K concurrent random inserts and reads.
  */
 TEST_F(BwtreeTest, ConcurrentRandomInsertRead) {
-  // This defines the key space (0 ~ 4095)
+  // This defines the key space (0 ~ 4K - 1)
   const uint32_t key_num = 4096;
   std::atomic<size_t> insert_success_counter = 0;
 
@@ -158,13 +158,13 @@ TEST_F(BwtreeTest, ConcurrentRandomInsertRead) {
 }
 
 /*
- * Basic functionality test of 4096 concurrent random inserts and deletes.
+ * Basic functionality test of 4K concurrent random inserts and deletes.
  */
 TEST_F(BwtreeTest, ConcurrentRandomInsertDelete) {
   NOISEPAGE_ASSERT(num_threads_ % 2 == 0,
       "This test requires an even number of threads. This should have been handled when it was assigned.");
 
-  // This defines the key space (0 ~ 4095)
+  // This defines the key space (0 ~ 4K - 1)
   const uint32_t key_num = 4096;
 
   common::WorkerPool thread_pool(num_threads_, {});
@@ -204,13 +204,13 @@ TEST_F(BwtreeTest, ConcurrentRandomInsertDelete) {
 }
 
 /*
- * Basic functionality test of 4096 concurrent random inserts, deletes and reads.
+ * Basic functionality test of 4K concurrent random inserts, deletes and reads.
  */
 TEST_F(BwtreeTest, ConcurrentRandomInsertDeleteRead) {
   NOISEPAGE_ASSERT(num_threads_ % 2 == 0,
       "This test requires an even number of threads. This should have been handled when it was assigned.");
 
-  // This defines the key space (0 ~ 4095)
+  // This defines the key space (0 ~ 4K - 1)
   const uint32_t key_num = 4096;
 
   common::WorkerPool thread_pool(num_threads_, {});
@@ -263,10 +263,10 @@ TEST_F(BwtreeTest, ConcurrentRandomInsertDeleteRead) {
 }
 
 /*
- * Basic functionality test of 4096 concurrent skewed inserts
+ * Basic functionality test of 4K concurrent skewed inserts
  */
 TEST_F(BwtreeTest, ConcurrentSkewedInsert) {
-  // This defines the key space (0 ~ 4095)
+  // This defines the key space (0 ~ 4K - 1)
   const uint32_t key_num = 4096;
   std::atomic<size_t> insert_success_counter = 0;
   int key = 0xABCD;
@@ -298,10 +298,10 @@ TEST_F(BwtreeTest, ConcurrentSkewedInsert) {
 }
 
 /*
- * Basic functionality test of 4096 concurrent skewed inserts and reads.
+ * Basic functionality test of 4K concurrent skewed inserts and reads.
  */
 TEST_F(BwtreeTest, ConcurrentSkewedInsertRead) {
-  // This defines the key space (0 ~ 4095)
+  // This defines the key space (0 ~ 4K - 1)
   const uint32_t key_num = 4096;
   std::atomic<size_t> insert_success_counter = 0;
   int key = 0xABCD;
@@ -345,13 +345,13 @@ TEST_F(BwtreeTest, ConcurrentSkewedInsertRead) {
 }
 
 /*
- * Basic functionality test of 4096 concurrent skewed inserts and deletes.
+ * Basic functionality test of 4K concurrent skewed inserts and deletes.
  */
 TEST_F(BwtreeTest, ConcurrentSkewedInsertDelete) {
   NOISEPAGE_ASSERT(num_threads_ % 2 == 0,
       "This test requires an even number of threads. This should have been handled when it was assigned.");
 
-  // This defines the key space (0 ~ 4095)
+  // This defines the key space (0 ~ 4K - 1)
   const uint32_t key_num = 4096;
   int key = 0xABCD;
 
@@ -390,13 +390,13 @@ TEST_F(BwtreeTest, ConcurrentSkewedInsertDelete) {
 }
 
 /*
- * Basic functionality test of 4096 concurrent skewed inserts, deletes and reads.
+ * Basic functionality test of 4K concurrent skewed inserts, deletes and reads.
  */
 TEST_F(BwtreeTest, ConcurrentSkewedInsertDeleteRead) {
   NOISEPAGE_ASSERT(num_threads_ % 2 == 0,
       "This test requires an even number of threads. This should have been handled when it was assigned.");
 
-  // This defines the key space (0 ~ 4095)
+  // This defines the key space (0 ~ 4K - 1)
   const uint32_t key_num = 4096;
   int key = 0xABCD;
 
