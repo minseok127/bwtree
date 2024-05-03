@@ -11,23 +11,25 @@
 #include "worker_pool.h"
 #include "zipf.h"
 
-static void TestAndAnalyzeSimpleSituation();
+/*
+ * In this workload, multiple workers insert/delete different records with the
+ * same key and one dedicated worker continues to perform read.
+ */
+int main(int argc, char *argv[]) {  
+  uint32_t num_threads
+    = test::MultiThreadTestUtil::HardwareConcurrency();
 
-int main(int argc, char *argv[]) {
   /*
-   * Define your own situation and analyze it.
-   * You can refer to the test codes in googletest/bwtree_test.cc
-   *
-   * For example, the code below simply analyzes the ConcurrentRandomInsert test
-   * in googletest/bwtree_test.cc
+   * This workload requires even 
    */
-  TestAndAnalyzeSimpleSituation();
+
+  return 0;
 }
 
 /*
  * Example code. See test/bwtree_test.cc
  */
-static void TestAndAnalyzeSimpleSituation()
+static void ConcurrentRandomInsert()
 {
   uint32_t num_threads_ =
     test::MultiThreadTestUtil::HardwareConcurrency() + (test::MultiThreadTestUtil::HardwareConcurrency() % 2);
