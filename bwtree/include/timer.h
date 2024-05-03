@@ -7,7 +7,7 @@ namespace util {
 /**
  * A simple restartable timer.
  */
-template <typename ResolutionRatio = std::milli>
+template <typename ResolutionRatio = std::nano>
 class Timer {
   using Clock = std::chrono::high_resolution_clock;
   using TimePoint = std::chrono::time_point<Clock>;

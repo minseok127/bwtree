@@ -12,86 +12,89 @@
 #include "zipf.h"
 
 /*
- * In this workload, multiple workers insert/delete different records with the
- * same key and one dedicated worker continues to perform read.
+ * This workload is the ConcurrentSkewedInsertDeleteRead test in
+ * googletest/bwtree_test.cc
+ *
+ * We set the number of workers to the number of logical processors available
+ * to run threads on the user's computer. Since the workload requires pairs of
+ * workers, set the number to be even.
+ *
+ * The workload operates as a pair of two worker threads. One worker inserts
+ * records and periodically scans for the keys it inserted. Another worker
+ * deletes the keys inserted by that worker. In other words, two workers sharing
+ * a queue, one worker filling the queue, and the other clearing the queue.
+ *
+ * Unlike the ConcurrentRandomInsertDeleteRead test in bwtree_test.cc,
+ * all records have the same key, making skewed situation.
+ *
+ * You can breakdown this workload and figure out the problems. You can use the
+ * timer library provided by c++ standard, or you can use the function of
+ * timer.h in the include directory. Of course, you can create your own
+ * functions for anlayzing.
  */
-int main(int argc, char *argv[]) {  
-  uint32_t num_threads
-    = test::MultiThreadTestUtil::HardwareConcurrency();
+int main(int argc, char *argv[]) {
+  const uint32_t num_threads_ =
+    test::MultiThreadTestUtil::HardwareConcurrency() + (test::MultiThreadTestUtil::HardwareConcurrency() % 2);
+  const uint32_t key_num = 4096;
+  int key = 0xABCD, read_cycle = 16;
 
   /*
-   * This workload requires even 
+   * Initialize thread pool and bwtree.
    */
-
-  return 0;
-}
-
-/*
- * Example code. See test/bwtree_test.cc
- */
-static void ConcurrentRandomInsert()
-{
-  uint32_t num_threads_ =
-    test::MultiThreadTestUtil::HardwareConcurrency() + (test::MultiThreadTestUtil::HardwareConcurrency() % 2);
-
-  // This defines the key space (0 ~ 4095)
-  const uint32_t key_num = 4096;
-  std::atomic<size_t> insert_success_counter = 0;
-  std::atomic<size_t> total_op_counter = 0;
-
   common::WorkerPool thread_pool(num_threads_, {});
   thread_pool.Startup();
   auto *const tree = test::BwTreeTestUtil::GetEmptyTree();
 
-  // Inserts in a 4096 key space randomly until all keys has been inserted
+  /*
+   * Function to be performed by each worker.
+   * See the ConcurrentSkewedInsertDeleteRead test case in googletest/bwtree_test.cc
+   */
   auto workload = [&](uint32_t id) {
     const uint32_t gcid = id + 1;
     tree->AssignGCID(gcid);
-    std::default_random_engine thread_generator(id);
-    std::uniform_int_distribution<int> uniform_dist(0, key_num - 1);
-    uint32_t op_cnt = 0;
 
-    while (insert_success_counter.load() < key_num) {
-      int key = uniform_dist(thread_generator);
+    /*
+     * Even-numbered workers insert records and read periodically.
+     */ 
+    if ((id % 2) == 0) {
+      util::Timer<std::milli> timer;
+      double total_read_elapsed_time = 0;
+      uint32_t total_read_counter = 0;
+      std::vector<int> key_vector;
 
-      if (tree->Insert(key, key)) insert_success_counter.fetch_add(1);
-      op_cnt++;
+      for (uint32_t i = 0; i < key_num; i++) {
+        int value = num_threads_ * i + id;
+
+        if (tree->Insert(key, value)) {
+          int read_counter = 0
+          key_vector.push_back(key);
+
+          /* Periodically scans the records inserted by this worker */
+          if (key_vector.size() == read_cycle) {
+            std::vector<int>::iterator iter;
+            for (iter = key_vector.begin(); iter != key_vector.end(); iter++) {
+              auto s = tree->GetValue(*iter);
+            }
+            key_vector.clear();
+          }
+        }
+      }
+    } else { /* Odd-numbered workers delete records */
+      for (uint32_t i = 0; i < key_num; i++) {
+        /* The value inserted by the above worker */
+        int value = num_threads_ * i + id - 1;
+        while (!tree->Delete(key, value)) {
+        }
+      }
     }
     tree->UnregisterThread(gcid);
-    total_op_counter.fetch_add(op_cnt);
   };
-
-  // Calculate total elapsed time for inserting 4096 records.
-  util::Timer<std::milli> timer;
-  timer.Start();
 
   tree->UpdateThreadLocal(num_threads_ + 1);
   test::MultiThreadTestUtil::RunThreadsUntilFinish(&thread_pool, num_threads_, workload);
   tree->UpdateThreadLocal(1);
 
-  timer.Stop();
-
-  // Print insert throughput
-  double ops = total_op_counter.load() / (timer.GetElapsed() / 1000.0);
-  double success_ops = insert_success_counter.load() / (timer.GetElapsed() / 1000.0);
-  std::cout << std::fixed << "4K Insert(): " << timer.GetElapsed() << " (ms), "
-    << "write throughput: " << ops << " (op/s), "
-    << "successive write throughput: " << success_ops << " (op/s)" << std::endl;
-
-  // Calculate total elapsed time for reading 4096 records.
-  timer.Start();
-  for (uint32_t i = 0; i < key_num; i++) {
-    auto s = tree->GetValue(i);
-
-    assert(s.size() == 1);
-    assert(*s.begin() == i);
-  }
-  timer.Stop();
-
-  // Print average read latency
-  double latency =  (timer.GetElapsed() / key_num);
-  std::cout << std::fixed << "4K Get(): " << timer.GetElapsed() << " (ms), "
-    << "avg read latency: " << latency << " (ms) " << std::endl;
-
   delete tree;
+
+  return 0;
 }
