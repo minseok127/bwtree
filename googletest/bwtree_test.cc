@@ -39,23 +39,14 @@ class BwtreeTest : public ::testing::Test {
      * perferred due to some reasons. Checkout the document for the difference.
      */
     BwtreeTest() {
-      num_threads_ =
-        test::MultiThreadTestUtil::HardwareConcurrency() +
-          (test::MultiThreadTestUtil::HardwareConcurrency() % 2);
-
-      /* 
-       * If the number of cores is too small,
-       * set the number of threads large to see the problem.
-       */
-      if (num_threads_ < 32) {
-        num_threads_ = 32;
-      }
     }
 
     ~BwtreeTest() {
     }
 
-    uint32_t num_threads_;
+    const uint32_t num_threads_ =
+      test::MultiThreadTestUtil::HardwareConcurrency() +
+          (test::MultiThreadTestUtil::HardwareConcurrency() % 2);
 
     const uint32_t read_cycle = 16;
 };
