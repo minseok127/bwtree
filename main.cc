@@ -20,8 +20,8 @@
  * workers, set the number to be even.
  *
  * Two worker threads form a pair. There will probably be multiple such pairs.
- * One worker inserts records and periodically scans for the keys it inserted.
- * Another worker deletes the keys inserted by that worker.
+ * One worker inserts records and periodically scans them. Another worker
+ * deletes the keys inserted by that worker.
  * 
  * In other words, two workers sharing a queue, one worker filling the queue,
  * and the other clearing the queue.
