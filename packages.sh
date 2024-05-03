@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIR="$( cd "$( dirname "$(BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 cd $DIR
 
 # fail if tying to reference a variable that is not set
