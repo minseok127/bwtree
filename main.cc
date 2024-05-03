@@ -57,16 +57,12 @@ int main(int argc, char *argv[]) {
      * Even-numbered workers insert records and read periodically.
      */ 
     if ((id % 2) == 0) {
-      util::Timer<std::milli> timer;
-      double total_read_elapsed_time = 0;
-      uint32_t total_read_counter = 0;
       std::vector<int> key_vector;
 
       for (uint32_t i = 0; i < key_num; i++) {
         int value = num_threads_ * i + id;
 
         if (tree->Insert(key, value)) {
-          int read_counter = 0
           key_vector.push_back(key);
 
           /* Periodically scans the records inserted by this worker */
