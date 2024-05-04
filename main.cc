@@ -12,87 +12,72 @@
 #include "zipf.h"
 
 /*
- * This workload is the ConcurrentSkewedInsertDeleteRead test in
- * googletest/bwtree_test.cc
+ * Precheck to understand the basic operations of Bwtree.
  *
- * We set the number of workers to the number of logical processors available
- * to run threads on the user's computer. Since the workload requires pairs of
- * workers, set the number to be even.
- *
- * Two worker threads form a pair. There will probably be multiple such pairs.
- * One worker inserts records and periodically scans them. Another worker
- * deletes the keys inserted by that worker.
- * 
- * In other words, two workers sharing a queue, one worker filling the queue,
- * and the other clearing the queue.
- *
- * Unlike the ConcurrentRandomInsertDeleteRead test in bwtree_test.cc,
- * all records have the same key, making skewed situation.
- *
- * You can breakdown this workload and figure out the problems. You can use the
- * timer library provided by c++ standard, or you can use the function of
- * timer.h in the include directory. Of course, you can create your own
- * functions for anlayzing.
+ * Insert 1M records into bwtree and delete them.
  */
 int main(int argc, char *argv[]) {
-  const uint32_t num_threads_ =
-    test::MultiThreadTestUtil::HardwareConcurrency() + (test::MultiThreadTestUtil::HardwareConcurrency() % 2);
-  const uint32_t key_num = 4096;
-  int key = 0xABCD, read_cycle = 16;
+  test::BwTreeTestUtil::TreeType *bwtree = test::BwTreeTestUtil::GetEmptyTree();
+  const int key_num = 1024 * 1024;
+  int gc_id = 0;
+
+  bwtree->AssignGCID(gc_id);
 
   /*
-   * Initialize thread pool and bwtree.
+   * 1. Insert 1M (1024*1024) records to the bwtree.
+   *
+   * Insert the keys from 0 to (1M - 1) sequentially into the bwtree.
    */
-  common::WorkerPool thread_pool(num_threads_, {});
-  thread_pool.Startup();
-  auto *const tree = test::BwTreeTestUtil::GetEmptyTree();
+  
 
   /*
-   * Function to be performed by each worker.
-   * See the ConcurrentSkewedInsertDeleteRead test case in googletest/bwtree_test.cc
+   * Check whether the insert was performed correctly.
+   * "FAIL" should not be printed.
    */
-  auto workload = [&](uint32_t id) {
-    const uint32_t gcid = id + 1;
-    tree->AssignGCID(gcid);
+  for (int key = 0; key < key_num; key++) {
+    auto value_set = bwtree->GetValue(key);
 
     /*
-     * Even-numbered workers insert records and read periodically.
-     */ 
-    if ((id % 2) == 0) {
-      std::vector<int> key_vector;
-
-      for (uint32_t i = 0; i < key_num; i++) {
-        int value = num_threads_ * i + id;
-
-        if (tree->Insert(key, value)) {
-          key_vector.push_back(key);
-
-          /* Periodically scans the records inserted by this worker */
-          if (key_vector.size() == read_cycle) {
-            std::vector<int>::iterator iter;
-            for (iter = key_vector.begin(); iter != key_vector.end(); iter++) {
-              auto s = tree->GetValue(*iter);
-            }
-            key_vector.clear();
-          }
-        }
-      }
-    } else { /* Odd-numbered workers delete records */
-      for (uint32_t i = 0; i < key_num; i++) {
-        /* The value inserted by the above worker */
-        int value = num_threads_ * i + id - 1;
-        while (!tree->Delete(key, value)) {
-        }
-      }
+     * ValueSet is std::unordered_set.
+     * See the bwtree.h.
+     */
+    if (value_set.size() != 1) {
+      std::cout << "[FAIL] Insert error (key: " << key << ")" << std::endl;
+      return -1;
     }
-    tree->UnregisterThread(gcid);
-  };
+  }
+  
 
-  tree->UpdateThreadLocal(num_threads_ + 1);
-  test::MultiThreadTestUtil::RunThreadsUntilFinish(&thread_pool, num_threads_, workload);
-  tree->UpdateThreadLocal(1);
+  /*
+   * 2. Delete 1M (1024*1024) records from the bwtree.
+   *
+   * Delete all records.
+   */
+  
 
-  delete tree;
+  /*
+   * Check whether the delete was performed correctly.
+   * "FAIL" should not be printed.
+   */
+  for (int key = 0; key < key_num; key++) {
+    auto value_set = bwtree->GetValue(key);
+
+    /*
+     * ValueSet is std::unordered_set.
+     * See the bwtree.h.
+     */
+    if (value_set.size() != 0) {
+      std::cout << "[FAIL] Delete error (key: " << key << ")" << std::endl;
+      return -1;
+    }
+  }
+
+  bwtree->UnregisterThread(gc_id);
+
+  delete bwtree;
+
+  /* Success */
+  std::cout << "[SUCCESS]" << std::endl;
 
   return 0;
 }

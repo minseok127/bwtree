@@ -1,0 +1,5 @@
+if(EXISTS "/home/minseok/bwtree/build/googletest/bwtree_test[1]_tests.cmake")
+  include("/home/minseok/bwtree/build/googletest/bwtree_test[1]_tests.cmake")
+else()
+  add_test(bwtree_test_NOT_BUILT bwtree_test_NOT_BUILT)
+endif()
